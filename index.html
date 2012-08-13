@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Taplap</title>
+		<style>
+			body{margin:0;background:#fff;}
+			canvas{display:block;}
+		</style>
+	</head>
+	<body>
+		<canvas id="c"></canvas>
+		<script src="underscore-min.js"></script>
+		<script src="request-anim-frame.js"></script>
+		<script src="main.js"></script>
+		<script>
+		taplap('#c', {
+			verticalMargin: 40,
+			lapDistance: 140,
+			bpm: 120
+		})
+		</script>
+	</body>
+</html>
+
