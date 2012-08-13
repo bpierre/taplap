@@ -1,4 +1,4 @@
-(function(window){
+(function(window, document, _){
 
   var DEFAULT_CONF = {
     players: 4,
@@ -34,27 +34,7 @@
 
   // Processing map function
   function map(value, istart, istop, ostart, ostop) {
-    return ostart + (ostop - ostart) * ((value - istart) / (istop - istart))
-  }
-
-
-  function getBeat(bpm, callback) {
-    var beat = {
-      interval: 0,
-      delay: 0,
-      onBeat: callback,
-      setBpm: function(bpm) {
-        if (this.interval) {
-          clearInterval(this.interval);
-        }
-        this.delay = 1000 * 60 / bpm;
-        this.interval = setInterval(function(){
-          beat.onBeat.call(beat);
-        }, beat.delay);
-      }
-    };
-    beat.setBpm(bpm);
-    return beat;
+    return ostart + (ostop - ostart) * ((value - istart) / (istop - istart));
   }
 
   // Returns a "Character" object
@@ -70,7 +50,8 @@
     return {
       steps: [],
       addSteps: function(stepsCount) {
-        var lastStep = this.steps.length? this.steps[this.steps.length-1] : 0;
+        var lastStep = this.steps.length? this.steps[this.steps.length-1] : 0,
+            currentLevels;
         for (var i = 0; i < stepsCount; i++) {
           currentLevels = _.without(levels, lastStep);
           lastStep = currentLevels[getRandomInt(0, currentLevels.length-1)];
@@ -111,7 +92,9 @@
     var lastTime, currentStep;
     draw = function() {
 
-      var yBase;
+      var yBase,
+          debugEachSecond = !lastTime || Date.now() - lastTime > 1000,
+          i, j;
 
       // Time progress
       xProgress = roundToDigits((Date.now() - startTime) / (1000 * 60 / conf.bpm) * conf.lapDistance, 1);
@@ -121,7 +104,7 @@
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
       // Grid
-      for (var i=0; i < 7 + (conf.players-1); i++) {
+      for (i = 0; i < 7 + (conf.players-1); i++) {
         ctx.beginPath();
         ctx.moveTo(0, (conf.verticalMargin * i) + conf.topMargin + 0.5);
         ctx.lineTo(ctx.canvas.width, (conf.verticalMargin * i) + conf.topMargin + 0.5);
@@ -131,36 +114,30 @@
       }
 
       // Path
-      for (var i = 0; i < conf.players; i++) {
+      for (i = 0; i < conf.players; i++) {
         yBase = conf.topMargin + (conf.verticalMargin * i);
+
+        // Path lines
         ctx.beginPath();
         ctx.moveTo(-xProgress, yBase + (path.steps[0]-1) * conf.verticalMargin + 0.5);
-        for (var j = 0; j < path.steps.length; j++) {
+        for (j = 0; j < path.steps.length; j++) {
           ctx.lineTo((j+1) * conf.lapDistance - xProgress, yBase + (path.steps[j+1]-1) * conf.verticalMargin + 0.5);
         }
         ctx.strokeStyle = conf.colors[i];
         ctx.stroke();
         ctx.closePath();
 
-        for (var k = 0; k < path.steps.length; k++) {
+        // Path points
+        for (j = 0; j < path.steps.length; j++) {
           ctx.fillStyle = '#333';
-          ctx.fillRect(k * conf.lapDistance - xProgress - 2, yBase + (path.steps[k]-1) * conf.verticalMargin - 2 + 0.5, 4, 4);
+          ctx.fillRect(j * conf.lapDistance - xProgress - 2, yBase + (path.steps[j]-1) * conf.verticalMargin - 2 + 0.5, 4, 4);
         }
-
-      }
-
-      if (!lastTime || Date.now() - lastTime > 1000) {
-        // console.log(currentStep, path.steps, path.steps[currentStep]);
       }
 
       // Players
-      for (var i=0; i < players.length; i++) {
+      for (i = 0; i < players.length; i++) {
 
         yBase = conf.topMargin + (conf.verticalMargin * i);
-
-        if (!lastTime || Date.now() - lastTime > 1000) {
-          // console.log(path.steps[currentStep]-1, path.steps[currentStep+1]-1)
-        }
 
         ctx.beginPath();
         ctx.arc(0, map(xProgress % conf.lapDistance,
@@ -174,7 +151,7 @@
       }
 
       // Debug
-      if (!lastTime || Date.now() - lastTime > 1000) {
+      if (debugEachSecond) {
         lastTime = Date.now();
       }
 
@@ -186,10 +163,6 @@
     canvResize(canvas, window, function(){
       draw();
     });
-
-    // getBeat(90, function(){
-    //   console.log('BEAT');
-    // });
   }
   window.taplap = start;
-})(this);
+})(this, this.document, this._);
