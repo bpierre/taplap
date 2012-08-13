@@ -6,7 +6,8 @@
     lapDistance: 80,
     topMargin: 100,
     colors: ['#f00', '#0f0', '#00f', '#f0f'],
-    bpm: 90
+    bpm: 90,
+    maxfps: 60
   };
 
   // Resize the canvas
@@ -89,15 +90,22 @@
     }
 
     // Draw function
-    var lastTime, currentStep;
+    var lastRenderTime, lastDebugTime, currentStep;
     draw = function() {
+      var now = Date.now(),
+          debugEachSecond = !lastDebugTime || now - lastDebugTime > 1000,
+          yBase, i, j;
 
-      var yBase,
-          debugEachSecond = !lastTime || Date.now() - lastTime > 1000,
-          i, j;
+      // Max fps
+      if (lastRenderTime && now - lastRenderTime < 1000 / conf.maxfps) {
+        window.requestAnimFrame(draw);
+        return;
+      }
+
+      lastRenderTime = now;
 
       // Time progress
-      xProgress = roundToDigits((Date.now() - startTime) / (1000 * 60 / conf.bpm) * conf.lapDistance, 1);
+      xProgress = roundToDigits((now - startTime) / (1000 * 60 / conf.bpm) * conf.lapDistance, 1);
       currentStep = Math.floor(xProgress / conf.lapDistance);
 
       // Clear canvas
@@ -152,7 +160,7 @@
 
       // Debug
       if (debugEachSecond) {
-        lastTime = Date.now();
+        lastDebugTime = now;
       }
 
       window.requestAnimFrame(draw);
