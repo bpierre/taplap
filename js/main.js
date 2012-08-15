@@ -77,7 +77,7 @@
 
     // Init path
     path = getPath();
-    path.addSteps(40);
+    path.addSteps(100);
 
     // Init players
     for (var i=0; i < conf.players; i++) {
@@ -94,6 +94,7 @@
     draw = function() {
       var now = Date.now(),
           debugEachSecond = !lastDebugTime || now - lastDebugTime > 1000,
+          viewportWidth = window.innerWidth,
           yBase, i, j;
 
       // Max fps
@@ -122,14 +123,27 @@
       }
 
       // Path
+      var pathSegmentX, pathSegmentY;
       for (i = 0; i < conf.players; i++) {
         yBase = conf.topMargin + (conf.verticalMargin * i);
 
-        // Path lines
+        // Path lines. This needs optimization, but basically,
+        // only the visible parts of the path are drawn.
         ctx.beginPath();
         ctx.moveTo(-xProgress, yBase + (path.steps[0]-1) * conf.verticalMargin + 0.5);
         for (j = 0; j < path.steps.length; j++) {
-          ctx.lineTo((j+1) * conf.lapDistance - xProgress, yBase + (path.steps[j+1]-1) * conf.verticalMargin + 0.5);
+          pathSegmentX = (j+1) * conf.lapDistance - xProgress;
+          pathSegmentY = yBase + (path.steps[j+1]-1) * conf.verticalMargin;
+
+          // Before the left side of the viewport: moveTo only
+          if (pathSegmentX < 0) {
+            ctx.moveTo(pathSegmentX, pathSegmentY + 0.5);
+
+          // The segment is drawn only if it begins before the right
+          // side of the viewport
+          } else if (pathSegmentX - conf.lapDistance <= viewportWidth) {
+            ctx.lineTo(pathSegmentX, pathSegmentY + 0.5);
+          }
         }
         ctx.strokeStyle = conf.colors[i];
         ctx.stroke();
@@ -144,9 +158,7 @@
 
       // Players
       for (i = 0; i < players.length; i++) {
-
         yBase = conf.topMargin + (conf.verticalMargin * i);
-
         ctx.beginPath();
         ctx.arc(0, map(xProgress % conf.lapDistance,
                        0, conf.lapDistance,
@@ -169,6 +181,7 @@
     draw();
 
     canvResize(canvas, window, function(){
+      viewportWidth = window.innerWidth;
       draw();
     });
   }
