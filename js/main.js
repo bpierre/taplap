@@ -3,11 +3,11 @@
   var DEFAULT_CONF = {
     players: 4,
     verticalMargin: 40,
-    lapDistance: 80,
+    lapDistance: 140,
     topMargin: 100,
     colors: ['#f00', '#0f0', '#00f', '#f0f'],
     bpm: 90,
-    maxfps: 60
+    maxfps: 120
   };
 
   // Resize the canvas
