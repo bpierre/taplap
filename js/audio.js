@@ -1,3 +1,5 @@
+// From http://async5.org/audiodata/examples/piano.html
+
 /**
  * Basic audio destination. (Mono output)
  * @constructor
@@ -16,12 +18,12 @@ function AudioDataDestination(sampleRate, readFn) {
   var prebufferSize = sampleRate * 0.250; // buffer 250ms
   var tail = null;
 
-  // The function called with regular interval to populate 
+  // The function called with regular interval to populate
   // the audio output buffer.
   setInterval(function() {
     var written;
     // Check if some data was not written in previous attempts.
-    if(tail) {  
+    if(tail) {
       written = audio.mozWriteAudio(tail);
       currentWritePosition += written;
       if(written < tail.length) {
@@ -57,14 +59,14 @@ var frequency = 0, currentSoundSample;
 var sampleRate = 44100;
 
 function requestSoundData(soundData) {
-  if (!frequency) { 
+  if (!frequency) {
     return; // no sound selected
   }
 
   var k = 2* Math.PI * frequency / sampleRate;
   for (var i=0, size=soundData.length; i<size; i++) {
     soundData[i] = Math.sin(k * currentSoundSample++);
-  }        
+  }
 }
 
 var audioDestination = new AudioDataDestination(sampleRate, requestSoundData);
