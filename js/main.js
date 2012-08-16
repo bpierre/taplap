@@ -70,6 +70,7 @@
         players = [],
         scroll = 0,
         draw = null,
+        playerXToY = null,
         startTime = Date.now(),
         xProgress = 0;
 
@@ -89,13 +90,22 @@
       ));
     }
 
+    // Returns the player Y position based on the given X position.
+    playerXToY = function(x, yBase) {
+      var currentStep = Math.floor((xProgress + x) / conf.lapDistance);
+      return map((xProgress + x) % conf.lapDistance,
+                 0, conf.lapDistance,
+                 yBase + (path.steps[currentStep]-1) * conf.verticalMargin,
+                 yBase + (path.steps[currentStep+1]-1) * conf.verticalMargin);
+    };
+
     // Draw function
-    var lastRenderTime, lastDebugTime, currentStep;
+    var lastRenderTime, lastDebugTime;
     draw = function() {
       var now = Date.now(),
           debugEachSecond = !lastDebugTime || now - lastDebugTime > 1000,
           viewportWidth = window.innerWidth,
-          yBase, i, j;
+          x, y, yBase, xBase, i, j;
 
       // Max fps
       if (lastRenderTime && now - lastRenderTime < 1000 / conf.maxfps) {
@@ -103,11 +113,11 @@
         return;
       }
 
+      // Save the last rendering time (to lock the max. framerate)
       lastRenderTime = now;
 
       // Time progress
       xProgress = roundToDigits((now - startTime) / (1000 * 60 / conf.bpm) * conf.lapDistance, 1);
-      currentStep = Math.floor(xProgress / conf.lapDistance);
 
       // Clear canvas
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -159,12 +169,9 @@
       // Players
       for (i = 0; i < players.length; i++) {
         yBase = conf.topMargin + (conf.verticalMargin * i);
+        x = Math.round(viewportWidth / 2) - (i * conf.lapDistance);
         ctx.beginPath();
-        ctx.arc(0, map(xProgress % conf.lapDistance,
-                       0, conf.lapDistance,
-                       yBase + (path.steps[currentStep]-1) * conf.verticalMargin,
-                       yBase + (path.steps[currentStep+1]-1) * conf.verticalMargin),
-                10, 0, Math.PI*2, true);
+        ctx.arc(x + 0.5, playerXToY(x, yBase) + 0.5, 10, 0, Math.PI*2, true);
         ctx.fillStyle = conf.colors[players[i].position-1];
         ctx.fill();
         ctx.closePath();
